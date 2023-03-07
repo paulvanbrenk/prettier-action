@@ -1,0 +1,28 @@
+name: Linter Check for PR
+run-name: Ensure files are formatted for ${{ github.actor }} on branch ${{ github.ref }}
+on: [pull_request, workflow_dispatch]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+      # uses nodejs package manager shims
+      - run: corepack enable
+        shell: bash
+      - run: corepack prepare yarn@stable --activate
+        shell: bash
+      # use versions as specified in the lock file
+      - run: yarn install --immutable
+        shell: bash
+      - uses: EPMatt/reviewdog-action-prettier@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review # add comments in the review
+          level: warning # [info,warning,error]
+          prettier_flags: "**/*.{js,ts,tsx,md,json}"
+      - run: echo "🚀 This job's status is ${{ job.status }}."
